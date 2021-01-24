@@ -13,7 +13,7 @@ import arrow.core.Either
  */
 fun parse(tokens: List<Token>): Either<ParseError, List<LecsNode>> {
     val context = initializeParserContext()
-    
+
     for (token in tokens) {
         if (isComment(token)) continue
 
@@ -78,7 +78,7 @@ private fun areBracesMismatched(openingBrace: Token, closingBrace: Token) =
 
 private fun getUnmatchedOpeningBraces(context: MutableList<Pair<MutableList<LecsNode>, TokenizerTypes>>): List<Token> {
     return context.map { it.second } //select the opening braces from the frames still on the stack
-                  .filterIsInstance<Token>() //remove the StartOfStream at the bottom of the stack
+        .filterIsInstance<Token>() //remove the StartOfStream at the bottom of the stack
 }
 
 private fun isComment(token: Token) = token.value.startsWith(";")

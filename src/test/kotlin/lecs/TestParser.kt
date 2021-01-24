@@ -192,7 +192,15 @@ class TestParser {
                     Token("""}""", 41..41),
                     Token(""")""", 42..42),
                 ),
-                Either.left(UnmatchedOpeningBraces(listOf(Token("""(""", 0..0), Token("""[""", 1..1), Token("""{""", 2..2))))
+                Either.left(
+                    UnmatchedOpeningBraces(
+                        listOf(
+                            Token("""(""", 0..0),
+                            Token("""[""", 1..1),
+                            Token("""{""", 2..2)
+                        )
+                    )
+                )
             )
         )
 }
