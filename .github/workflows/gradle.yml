@@ -32,3 +32,17 @@ jobs:
         flags: unitttests
         fail_ci_if_error: true
         verbose: true
+    - name: Push Documentation to Host
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+      run: |
+        git config --global user.email "github@markreuter.org"
+        git config --global user.name "Mark Reuter"
+        git clone https://github.com/reutermj/reutermj.github.io/
+        cd reutermj.github.io/
+        rm -rf dokka
+        mv ../build/dokka/ .
+        git remote set-url origin https://reutermj:$API_TOKEN_GITHUB@github.com/reutermj/reutermj.github.io
+        git add -A
+        git commit -m "A test commit message"
+        git push origin main
