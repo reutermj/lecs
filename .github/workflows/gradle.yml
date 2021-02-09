@@ -7,6 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Set up JDK 1.8
       uses: actions/setup-java@v1
       with:
@@ -15,29 +17,27 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
-    - name: Run Dokka documentation Generation
-      run: ./gradlew dokkaHtml
     - uses: codecov/codecov-action@v1
       with:
         directory: ./build/reports/jacoco/test/
         flags: unitttests
         fail_ci_if_error: true
-    - name: Push Documentation to Host
+    - name: Run Dokka documentation Generation
+      if: ${{ github.event.head_commit.message != '' && github.repository == 'reutermj/lecs' }}
       env:
         API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
       run: |
+        ./gradlew dokkaHtml
         git config --global user.email "github@markreuter.org"
         git config --global user.name "reutermj"
+        COMMIT_MESSAGE=$(git log --format=%B -n 1 ${{ github.event.after }})
         git clone https://github.com/reutermj/reutermj.github.io/
-        cd reutermj.github.io/
-        rm -rf dokka
-        mkdir lecsdocs
-        cd lecsdocs
+        cd reutermj.github.io/lecsdocs/
         rm -rf ${GITHUB_REF##*/}
         mv ../../build/dokka/ ./${GITHUB_REF##*/}/
         git remote set-url origin https://reutermj:$API_TOKEN_GITHUB@github.com/reutermj/reutermj.github.io
         git add -A
-        git commit -m "A test commit message"
+        git commit -m "${{ github.event.head_commit.message }}"
         git push origin main
   build-mac:
     runs-on: macos-latest
