@@ -22,7 +22,6 @@ jobs:
         directory: ./build/reports/jacoco/test/
         flags: unitttests
         fail_ci_if_error: true
-        verbose: true
     - name: Push Documentation to Host
       env:
         API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -32,7 +31,10 @@ jobs:
         git clone https://github.com/reutermj/reutermj.github.io/
         cd reutermj.github.io/
         rm -rf dokka
-        mv ../build/dokka/ .
+        mkdir lecsdocs
+        cd lecsdocs
+        rm -rf ${GITHUB_REF##*/}
+        mv ../../build/dokka/ ./${GITHUB_REF##*/}/
         git remote set-url origin https://reutermj:$API_TOKEN_GITHUB@github.com/reutermj/reutermj.github.io
         git add -A
         git commit -m "A test commit message"
