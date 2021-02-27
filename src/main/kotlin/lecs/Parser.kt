@@ -2,14 +2,17 @@ package lecs
 
 import arrow.core.Either
 
-/*
- * Generates a parse tree represented by a list of nodes from a list of tokens
- * or returns an error documenting the first parse error encountered when iterating the list of tokens.
+/**
+ * Generates a parse tree represented by a [List] of [LecsNode] from a [List] of [Token]
+ * or returns a [ParseError] documenting the first parse error encountered when iterating the [List] of [Token].
  *
- * This method will report the following parse errors:
- * * Mismatched closing brace. The found closing brace does not match the respective opening brace,
- * * Unmatched opening brace. All tokens were parsed but some opening braces were never closed.
- * * Unmatched closing brace. No opening brace was found to match the found closing brace
+ * This method may report the following [ParseError]:
+ * * [MismatchedClosingBrace]: The found closing brace does not match the respective opening brace,
+ * * [UnmatchedOpeningBraces]: All tokens were parsed but some opening braces were never closed, or
+ * * [UnmatchedClosingBrace]: No opening brace was found to match the found closing brace.
+ *
+ * @param[tokens] A [List] of [Token] to parse.
+ * @return Either the first [ParseError] reported during parsing or the [List] of [LecsNode] produced from [tokens].
  */
 fun parse(tokens: List<Token>): Either<ParseError, List<LecsNode>> {
     val context = initializeParserContext()
@@ -50,15 +53,70 @@ fun parse(tokens: List<Token>): Either<ParseError, List<LecsNode>> {
 }
 
 /* Return type definitions */
+/**
+ * The supertype of all nodes in the parse tree.
+ */
 sealed class LecsNode
+
+/**
+ * Parse tree representation of the list syntax literal.
+ *
+ * @property[startToken] The [Token] representing the left brace in the source.
+ * @property[nodes] The [List] of children [LecsNode] of this node.
+ * @property[endToken] The [Token] representing the right brace in the source.
+ */
 data class ListNode(val startToken: Token, val nodes: List<LecsNode>, val endToken: Token) : LecsNode()
+
+/**
+ * Parse tree representation of the vector syntax literal.
+ *
+ * @property[startToken] The [Token] representing the left brace in the source.
+ * @property[nodes] The [List] of children [LecsNode] of this node.
+ * @property[endToken] The [Token] representing the right brace in the source.
+ */
 data class VectorNode(val startToken: Token, val nodes: List<LecsNode>, val endToken: Token) : LecsNode()
+
+/**
+ * Parse tree representation of the set syntax literal.
+ *
+ * @property[startToken] The [Token] representing the left brace in the source.
+ * @property[nodes] The [List] of children [LecsNode] of this node.
+ * @property[endToken] The [Token] representing the right brace in the source.
+ */
 data class SetNode(val startToken: Token, val nodes: List<LecsNode>, val endToken: Token) : LecsNode()
+
+/**
+ * Parse tree representation of a symbol.
+ *
+ * @property[token] The [Token] representing this symbol in the source code.
+ */
 data class SymbolNode(val token: Token) : LecsNode()
 
+/**
+ * The supertype of all parse errors.
+ */
 sealed class ParseError
+
+/**
+ * The [ParseError] representing incorrectly matched braces in the source code.
+ *
+ * @property[openingBrace] The [Token] representing the left brace in the source code.
+ * @property[closingBrace] The [Token] representing the right brace in the source code.
+ */
 data class MismatchedClosingBrace(val openingBrace: Token, val closingBrace: Token) : ParseError()
+
+/**
+ * The [ParseError] representing a found closing brace but no matching opening brace.
+ *
+ * @property[closingBrace] The [Token] representing the unmatched right brace in the source code.
+ */
 data class UnmatchedClosingBrace(val closingBrace: Token) : ParseError()
+
+/**
+ * The [ParseError] representing a [List] of opening braces with no matching closing braces.
+ *
+ * @property[openingBraces] The [List] of [Token] representing the unmatched left braces in the source code.
+ */
 data class UnmatchedOpeningBraces(val openingBraces: List<Token>) : ParseError()
 
 /* Implementation details */
