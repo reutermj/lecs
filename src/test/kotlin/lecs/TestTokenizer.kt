@@ -3,6 +3,7 @@ package lecs
 import arrow.core.Either
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import lecs.parser.*
 
 class TestTokenizer {
     @Test

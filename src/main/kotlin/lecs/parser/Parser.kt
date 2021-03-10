@@ -1,4 +1,4 @@
-package lecs
+package lecs.parser
 
 import arrow.core.Either
 
@@ -26,22 +26,16 @@ fun parse(tokens: List<Token>): Either<ParseError, List<LecsNode>> {
 
                 when (openingBrace) {
                     is StartOfStream -> return Either.left(UnmatchedClosingBrace(token))
-                    is Token -> {
+                    is Token         -> {
                         if (areBracesMismatched(openingBrace, token))
                             return Either.left(MismatchedClosingBrace(openingBrace, token))
 
-                        context.nodes.add(
-                            when (getMode(openingBrace)) {
-                                ParseMode.ListMode -> ListNode(openingBrace, nodes, token)
-                                ParseMode.SetMode -> SetNode(openingBrace, nodes, token)
-                                ParseMode.VectorMode -> VectorNode(openingBrace, nodes, token)
-                            }
-                        )
+                        context.nodes.add(SequenceNode(openingBrace, nodes, token))
                     }
                 }
             }
             "(", "{", "[" -> context.push(token)
-            else -> context.nodes.add(SymbolNode(token))
+            else          -> context.nodes.add(SymbolNode(token))
         }
     }
 
@@ -59,31 +53,13 @@ fun parse(tokens: List<Token>): Either<ParseError, List<LecsNode>> {
 sealed class LecsNode
 
 /**
- * Parse tree representation of the list syntax literal.
+ * Parse tree representation of all sequence syntax literals.
  *
  * @property[startToken] The [Token] representing the left brace in the source.
  * @property[nodes] The [List] of children [LecsNode] of this node.
  * @property[endToken] The [Token] representing the right brace in the source.
  */
-data class ListNode(val startToken: Token, val nodes: List<LecsNode>, val endToken: Token) : LecsNode()
-
-/**
- * Parse tree representation of the vector syntax literal.
- *
- * @property[startToken] The [Token] representing the left brace in the source.
- * @property[nodes] The [List] of children [LecsNode] of this node.
- * @property[endToken] The [Token] representing the right brace in the source.
- */
-data class VectorNode(val startToken: Token, val nodes: List<LecsNode>, val endToken: Token) : LecsNode()
-
-/**
- * Parse tree representation of the set syntax literal.
- *
- * @property[startToken] The [Token] representing the left brace in the source.
- * @property[nodes] The [List] of children [LecsNode] of this node.
- * @property[endToken] The [Token] representing the right brace in the source.
- */
-data class SetNode(val startToken: Token, val nodes: List<LecsNode>, val endToken: Token) : LecsNode()
+data class SequenceNode(val startToken: Token, val nodes: List<LecsNode>, val endToken: Token) : LecsNode()
 
 /**
  * Parse tree representation of a symbol.
@@ -120,19 +96,13 @@ data class UnmatchedClosingBrace(val closingBrace: Token) : ParseError()
 data class UnmatchedOpeningBraces(val openingBraces: List<Token>) : ParseError()
 
 /* Implementation details */
-private enum class ParseMode {
-    ListMode, SetMode, VectorMode
-}
-
-private fun getMode(bracket: Token): ParseMode =
-    when (bracket.value) {
-        "(", ")" -> ParseMode.ListMode
-        "{", "}" -> ParseMode.SetMode
-        else -> ParseMode.VectorMode
-    }
-
 private fun areBracesMismatched(openingBrace: Token, closingBrace: Token) =
-    getMode(openingBrace) != getMode(closingBrace)
+    when(openingBrace.value) {
+        "(" -> closingBrace.value != ")"
+        "[" -> closingBrace.value != "]"
+        "{" -> closingBrace.value != "}"
+        else -> false
+    }
 
 private fun getUnmatchedOpeningBraces(context: MutableList<Pair<MutableList<LecsNode>, TokenizerTypes>>): List<Token> {
     return context.map { it.second } //select the opening braces from the frames still on the stack

@@ -3,6 +3,7 @@ package lecs
 import arrow.core.Either
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import lecs.parser.*
 
 class TestParser {
     @Test
@@ -22,7 +23,6 @@ class TestParser {
                     Token("""bla""", 6..8),
                     Token("""[""", 10..10),
                     Token("""]""", 11..11),
-
                     Token("""{""", 13..13),
                     Token("""do""", 14..15),
                     Token("""something""", 17..25),
@@ -31,13 +31,13 @@ class TestParser {
                 ),
                 Either.right(
                     listOf(
-                        ListNode(
+                        SequenceNode(
                             Token("""(""", 0..0),
                             listOf(
                                 SymbolNode(Token("""defn""", 1..4)),
                                 SymbolNode(Token("""bla""", 6..8)),
-                                VectorNode(Token("""[""", 10..10), listOf(), Token("""]""", 11..11)),
-                                SetNode(
+                                SequenceNode(Token("""[""", 10..10), listOf(), Token("""]""", 11..11)),
+                                SequenceNode(
                                     Token("""{""", 13..13),
                                     listOf(
                                         SymbolNode(Token("""do""", 14..15)),
@@ -83,13 +83,13 @@ class TestParser {
                 ),
                 Either.right(
                     listOf(
-                        ListNode(
+                        SequenceNode(
                             Token("""(""", 0..0),
                             listOf(
                                 SymbolNode(Token("""defn""", 1..4)),
                                 SymbolNode(Token("""bla""", 6..8)),
-                                VectorNode(Token("""[""", 10..10), listOf(), Token("""]""", 11..11)),
-                                SetNode(
+                                SequenceNode(Token("""[""", 10..10), listOf(), Token("""]""", 11..11)),
+                                SequenceNode(
                                     Token("""{""", 13..13),
                                     listOf(
                                         SymbolNode(Token("""do""", 14..15)),
@@ -101,13 +101,13 @@ class TestParser {
                             ),
                             Token(""")""", 38..38)
                         ),
-                        ListNode(
+                        SequenceNode(
                             Token("""(""", 45..45),
                             listOf(
                                 SymbolNode(Token("""define""", 46..51)),
                                 SymbolNode(Token("""do-more-things""", 53..66)),
-                                VectorNode(Token("""[""", 68..68), listOf(), Token("""]""", 69..69)),
-                                ListNode(
+                                SequenceNode(Token("""[""", 68..68), listOf(), Token("""]""", 69..69)),
+                                SequenceNode(
                                     Token("""(""", 71..71),
                                     listOf(
                                         SymbolNode(Token("""more""", 72..75)),
@@ -118,7 +118,7 @@ class TestParser {
                             ),
                             Token(""")""", 84..84)
                         ),
-                        ListNode(
+                        SequenceNode(
                             Token("""(""", 86..86),
                             listOf(
                                 SymbolNode(Token("""a""", 87..87)),

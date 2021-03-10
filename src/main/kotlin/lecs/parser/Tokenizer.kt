@@ -1,4 +1,4 @@
-package lecs
+package lecs.parser
 
 import arrow.core.Either
 
@@ -9,7 +9,7 @@ import arrow.core.Either
  * * Single quote delimited strings with escapable single quotes terminating on end of line and end of string,
  * * Double quote delimited strings with escapable double quotes terminating on end of line and end of string,
  * * Semicolon signaled line comments,
- * * Brackets: (, ), {, }, &#91;, &#93;, and
+ * * Brackets: `(`, `)`, `{`, `}`, `[`, `]`, and
  * * Whitespace separated unicode-16 strings.
  *
  * Whitespace is considered insignificant and is only used to mark separation of tokens.
@@ -25,9 +25,7 @@ fun tokenize(input: String): Either<TokenizerError, List<Token>> {
     val tokens = mutableListOf<Token>()
 
     for (token in matches.map { match -> Token(match.value.trim(), match.range) }) {
-        if ((token.value.startsWith("\"") && !token.value.endsWith("\"")) or
-            (token.value.startsWith("'") && !token.value.endsWith("'"))
-        )
+        if (isMalformedString(token))
             return Either.left(MalformedStringError(token))
         else
             tokens.add(token)
@@ -36,19 +34,7 @@ fun tokenize(input: String): Either<TokenizerError, List<Token>> {
     return Either.right(tokens)
 }
 
-/*
- * ('(?:[^'\\]|\\.)*?(['\n]|$)): Matches single-quote delimited strings terminating on end of line and end of file
- *                               and accounts for escaped single quotes inside the string
- * ("(?:[^"\\]|\\.)*?(["\n]|$)): Matches double-quote delimited strings terminating on end of line and end of file
- *                               and accounts for escaped double quotes inside the string. Yes there's probably
- *                               some way of combining this and the previous case, but I haven't figured it out
- * ;.+: Matches comments
- * \(|\)|\{|}|\[|]: Match the braces
- * [^'";()\[\]{}\s]+: Match the rest of the symbols
- */
-private val tokenizerRegex =
-    """('(?:[^'\\]|\\.)*?(['\n]|$))|("(?:[^"\\]|\\.)*?(["\n]|$))|;.+|\(|\)|\{|}|\[|]|[^'";()\[\]{}\s]+""".toRegex()
-
+/* Return type definitions */
 /**
  * Used internally. Please ignore.
  */
@@ -74,3 +60,24 @@ sealed class TokenizerError
  * @property[malformedString] The [Token] representing the malformed string in the source code.
  */
 data class MalformedStringError(val malformedString: Token) : TokenizerError()
+
+/* Implementation details */
+/*
+ * ('(?:[^'\\]|\\.)*?(['\n]|$)): Matches single-quote delimited strings terminating on end of line and end of file
+ *                               and accounts for escaped single quotes inside the string
+ * ("(?:[^"\\]|\\.)*?(["\n]|$)): Matches double-quote delimited strings terminating on end of line and end of file
+ *                               and accounts for escaped double quotes inside the string. Yes there's probably
+ *                               some way of combining this and the previous case, but I haven't figured it out
+ * ;.+: Matches comments
+ * \(|\)|\{|}|\[|]: Match the braces
+ * [^'";()\[\]{}\s]+: Match the rest of the symbols
+ */
+private val tokenizerRegex =
+    """('(?:[^'\\]|\\.)*?(['\n]|$))|("(?:[^"\\]|\\.)*?(["\n]|$))|;.+|\(|\)|\{|}|\[|]|[^'";()\[\]{}\s]+""".toRegex()
+
+private fun isMalformedString(token: Token) =
+    when {
+        token.value.startsWith("\"") -> !token.value.endsWith("\"")
+        token.value.startsWith("'") -> !token.value.endsWith("'")
+        else -> false
+    }
